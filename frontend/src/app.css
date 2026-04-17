@@ -1,0 +1,48 @@
+:root {
+    --color-text-main: #1a1a1a;
+    --color-text-muted: #666666;
+
+    --color-primary: #3b82f6;
+    --color-primary-hover: #2563eb;
+    --color-primary-contrast: #ffffff;
+
+    --color-bg: #ffffff;
+
+    --color-border: #d1d5db;
+    --color-border-dark: #374151;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--color-bg);
+    color: var(--color-text-main);
+
+    font-family: sans-serif;
+    font-size: 1rem;
+    -webkit-font-smoothing: antialiased;
+}
+
+img, picture, video, canvas, svg {
+    display: block;
+    max-width: 100%;
+}
+
+input, button, textarea, select {
+    font: inherit;
+}
+
+p, h1, h2, h3, h4, h5, h6 {
+    overflow-wrap: break-word;
+}
+
+#app {
+  isolation: isolate;
+}
