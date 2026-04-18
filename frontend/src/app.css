@@ -6,7 +6,7 @@
     --color-primary-hover: #2563eb;
     --color-primary-contrast: #ffffff;
 
-    --color-bg: #ffffff;
+    --color-background: #ffffff;
 
     --color-border: #d1d5db;
     --color-border-dark: #374151;
@@ -22,7 +22,7 @@ html, body {
 }
 
 body {
-    background-color: var(--color-bg);
+    background-color: var(--color-background);
     color: var(--color-text-main);
 
     font-family: sans-serif;

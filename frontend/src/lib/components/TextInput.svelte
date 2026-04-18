@@ -1,13 +1,12 @@
 <script lang="ts">
-    import type { FullAutoFill } from "svelte/elements";
+    import type { HTMLInputAttributes } from "svelte/elements";
 
-    export let label: string | undefined = undefined;
-    export let name: string | undefined = undefined;
-    export let autocomplete: FullAutoFill | undefined = undefined;
-    export let type: "text" | "password" = "text";
-    export let value = "";
+    interface Props extends HTMLInputAttributes {
+        label?: string;
+        value?: string;
+    }
 
-    let id: string = crypto.randomUUID();
+    let { label, id = crypto.randomUUID(), value = $bindable(), ...restProps }: Props = $props();
 </script>
 
 <div class="input-container">
@@ -15,14 +14,7 @@
         <label for={id}>{label}</label>
     {/if}
 
-    <input
-        {id}
-        {name}
-        {autocomplete}
-        {type}
-        on:keydown
-        bind:value={value}
-    />
+    <input {id} bind:value={value} {...restProps} />
 </div>
 
 <style>

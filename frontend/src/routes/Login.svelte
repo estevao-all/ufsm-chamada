@@ -2,11 +2,13 @@
     import TextInput from "../lib/components/TextInput.svelte";
     import Button from "../lib/components/Button.svelte";
 
-    let username = "";
-    let password = "";
-    let isLoading = false;
+    let username = $state("");
+    let password = $state("");
+    let loading = $state(false);
 
-    async function handleLogin() {
+    async function handleLogin(event: SubmitEvent) {
+        event.preventDefault();
+
         const sanitizedUsername = username.trim();
         const sanitizedPassword = password.trim();
 
@@ -14,7 +16,7 @@
             return;
         }
 
-        isLoading = true;
+        loading = true;
 
         const response = await fetch("/api/login", {
             method: "POST",
@@ -22,37 +24,28 @@
             body: JSON.stringify({ username: sanitizedUsername, password: sanitizedPassword }),
         }).catch(() => null);
 
-        isLoading = false;
-    }
-
-    function handleKeyDown(event: KeyboardEvent) {
-        switch (event.key) {
-            case "Enter": {
-                handleLogin();
-                break;
-            }
-        }
+        loading = false;
     }
 </script>
 
-<div class="main-container">
-    <div class="login-container">
+<div class="content">
+    <form class="login-container" onsubmit={handleLogin}>
         <TextInput
             name="username" autocomplete="username"
-            label="Usuário" bind:value={username}
-            on:keydown={handleKeyDown}
+            label="Usuário"
+            bind:value={username}
         />
         <TextInput
             name="password" autocomplete="current-password"
-            label="Senha" type="password"
-            bind:value={password} on:keydown={handleKeyDown}
+            type="password" label="Senha"
+            bind:value={password}
         />
-        <Button on:click={handleLogin} {isLoading}>Login</Button>
-    </div>
+        <Button type="submit" {loading}>Login</Button>
+    </form>
 </div>
 
 <style>
-  .main-container {
+  .content {
     min-height: 100vh;
 
     display: flex;

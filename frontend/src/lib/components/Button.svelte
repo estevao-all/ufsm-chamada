@@ -1,24 +1,29 @@
 <script lang="ts">
-    export let isDisabled = false;
-    export let isLoading = false;
+    import type { HTMLButtonAttributes } from 'svelte/elements';
+
+    interface Props extends HTMLButtonAttributes {
+        loading?: boolean;
+    }
+
+    let { disabled = false, loading = false, children, ...restProps }: Props = $props();
 </script>
 
 <button
-    disabled={isDisabled || isLoading}
-    class:isLoading
-    on:click
-    type="button"
-    {...$$restProps}
+    disabled={disabled || loading}
+    data-loading={loading}
+    {...restProps}
 >
-    {#if isLoading}
-        <span class="spinner"></span>
-    {:else}
-        <slot />
-    {/if}
+    <span class="spinner"></span>
+    <span class="content">
+        {@render children?.()}
+    </span>
 </button>
 
 <style>
     button {
+        visibility: visible;
+        position: relative;
+
         width: 100%;
 
         background-color: var(--color-primary);
@@ -30,7 +35,6 @@
         align-items: center;
         justify-content: center;
         padding: 0.6em 1.2em;
-        font-size: 1rem;
         font-weight: bold;
         cursor: pointer;
         transition: all 0.2s ease;
@@ -46,9 +50,13 @@
     }
 
     .spinner {
-        width: 16px;
-        height: 16px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
+        visibility: hidden;
+        position: absolute;
+
+        width: 1em;
+        height: 1em;
+
+        border: 2px solid color-mix(in srgb, var(--color-primary-contrast), transparent 50%);
         border-top-color: var(--color-primary-contrast);
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
@@ -58,5 +66,13 @@
         to {
             transform: rotate(360deg);
         }
+    }
+
+    button[data-loading="true"] .spinner {
+        visibility: visible;
+    }
+
+    button[data-loading="true"] .content {
+        visibility: hidden;
     }
 </style>
