@@ -9,9 +9,6 @@ import (
 	"strings"
 )
 
-var BASE_URL = "https://portal.ufsm.br"
-var LOGIN_URL = BASE_URL + "/estudantil/j_security_check"
-
 type LoginRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -20,49 +17,52 @@ type LoginRequest struct {
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	var login_request LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&login_request); err != nil {
-		utils.WriteError(w, "invalid JSON", http.StatusBadRequest)
+		utils.WriteError(w, http.StatusBadRequest, "Invalid LoginRequest body")
 		return
 	}
 
-	ufsm_login_body := url.Values{}
-	ufsm_login_body.Set("j_username", login_request.Username)
-	ufsm_login_body.Set("j_password", login_request.Password)
-	ufsm_login_body.Set("enter", "")
+	req_body := url.Values{}
+	req_body.Set("j_username", login_request.Username)
+	req_body.Set("j_password", login_request.Password)
+	req_body.Set("enter", "")
 
-	req, _ := http.NewRequest(
-		"POST",
-		"https://portal.ufsm.br/estudantil/j_security_check",
-		strings.NewReader(ufsm_login_body.Encode()),
-	)
+	req, err := http.NewRequest("POST", UFSM_PORTAL_LOGIN_URL, strings.NewReader(req_body.Encode()))
+	if err != nil {
+		utils.WriteStatusAndLogInternally(w,
+			http.StatusInternalServerError, "Error creating UFSM Portal login request: "+err.Error())
+		return
+	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Origin", BASE_URL)
-	req.Header.Set("Referer", LOGIN_URL)
+	req.Header.Set("Host", UFSM_PORTAL_BASE_URL)
+	req.Header.Set("Origin", UFSM_PORTAL_BASE_URL)
+	req.Header.Set("Referer", UFSM_PORTAL_LOGIN_URL)
 	req.Header.Set("User-Agent", r.Header.Get("User-Agent"))
 
 	resp, err := utils.Client.Do(req)
 	if err != nil {
-		error_msg := "Error making UFSM login request: " + err.Error()
-		log.Println(error_msg)
-		utils.WriteError(w, error_msg, http.StatusUnauthorized)
+		utils.WriteStatusAndLogInternally(w,
+			http.StatusInternalServerError, "Error making UFSM Portal login request: "+err.Error())
 		return
 	}
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusFound {
-		error_msg := "Unexpected status code from UFSM login request: " + resp.Status
-		log.Println(error_msg)
-		utils.WriteError(w, error_msg, http.StatusUnauthorized)
+	if resp.StatusCode == http.StatusOK {
+		w.WriteHeader(http.StatusUnauthorized) // Invalid credentials.
 		return
 	}
 
-	for _, c := range resp.Cookies() {
-		log.Printf("Cookie: %s=%s\n", c.Name, c.Value)
-
-		c.MaxAge = 60 * 60 * 24 * 7
-		http.SetCookie(w, c)
+	if resp.StatusCode != http.StatusFound {
+		utils.WriteStatusAndLogInternally(w,
+			http.StatusInternalServerError, "Unexpected status code from UFSM Portal login request: "+resp.Status)
+		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	utils.RedirectCookiesAndSetMaxAge(w, resp)
+	for _, cookie := range resp.Cookies() {
+		log.Printf("Cookie: %s=%s\n", cookie.Name, cookie.Value)
+	}
+
+	w.WriteHeader(http.StatusOK) // Login successful.
 }
