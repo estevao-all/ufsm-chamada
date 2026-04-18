@@ -13,14 +13,14 @@ type UserInfoResponse struct {
 var name_regex = regexp.MustCompile(`Menu Geral do Usuário.+?icon-user"></span> (.+?) <span`)
 
 func HandleUserInfo(w http.ResponseWriter, r *http.Request) {
-	req, err := http.NewRequest("GET", UFSM_PORTAL_USER_INFO_URL, nil)
+	req, err := http.NewRequest("GET", UFSM_PORTAL_INDEX_URL, nil)
 	if err != nil {
 		utils.WriteStatusAndLogInternally(w,
 			http.StatusInternalServerError, "Error creating UFSM Portal user info request: "+err.Error())
 		return
 	}
 
-	req.Header.Set("Host", UFSM_PORTAL_BASE_URL)
+	req.Header.Set("Host", UFSM_PORTAL_HOST)
 	req.Header.Set("Cookie", r.Header.Get("Cookie"))
 	req.Header.Set("User-Agent", r.Header.Get("User-Agent"))
 
