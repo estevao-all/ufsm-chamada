@@ -49,6 +49,8 @@ func WriteErrorAndLogInternally(w http.ResponseWriter, statusCode int, message s
 
 func RedirectCookiesAndSetMaxAge(w http.ResponseWriter, resp *http.Response) {
 	for _, cookie := range resp.Cookies() {
+		cookie.Path = "/"
+		cookie.HttpOnly = false
 		cookie.MaxAge = default_cookies_max_age
 		http.SetCookie(w, cookie)
 	}
