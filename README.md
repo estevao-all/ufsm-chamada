@@ -12,17 +12,17 @@ Para instalar as dependências:
 pnpm i
 ```
 
-Para rodar o servidor local e servir o HTML (e automaticamente recompilar o site quando houver mudanças):
+Para rodar o servidor local e servir o HTML (e automaticamente recompilar o site quando houverem mudanças):
 ```bash
 pnpm run dev
 ```
 
 ### No Backend:
 
-Para rodar o server local utlizado como API:
+Para rodar o servidor local utilizado como API:
 ```bash
 make dev
 # ou
 go run main.go
 ```
-É necessário rodar o server novamente quando houverem mudanças.
+É necessário rodar o servidor novamente quando houverem mudanças.
