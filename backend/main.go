@@ -14,6 +14,10 @@ func main() {
 	mux.HandleFunc("/api/login", routes.HandleLogin)
 
 	frontend_static_files_dir := os.Getenv("FRONTEND_STATIC_FILES_DIR")
+	if frontend_static_files_dir == "" {
+		frontend_static_files_dir = "./frontend"
+	}
+
 	fs := http.FileServer(http.Dir(frontend_static_files_dir))
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := frontend_static_files_dir + r.URL.Path
