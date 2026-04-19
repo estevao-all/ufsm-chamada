@@ -59,17 +59,23 @@ func RedirectCookiesAndSetMaxAge(w http.ResponseWriter, resp *http.Response) {
 func ClearCookies(w http.ResponseWriter, r *http.Request) {
 	for _, cookie := range r.Cookies() {
 		http.SetCookie(w, &http.Cookie{
-			Name:   cookie.Name,
-			Value:  "",
-			MaxAge: -1,
+			Name:     cookie.Name,
+			Value:    "",
+			Path:     "/",
+			HttpOnly: false,
+			MaxAge:   -1,
 		})
 	}
 }
 
+func Unauthorize(w http.ResponseWriter, r *http.Request) {
+	ClearCookies(w, r)
+	WriteError(w, http.StatusUnauthorized, "Unauthorized")
+}
+
 func HandleUnauthorized(w http.ResponseWriter, r *http.Request, resp *http.Response) bool {
 	if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
-		WriteError(w, http.StatusUnauthorized, "Invalid UFSM Portal authentication cookies")
-		ClearCookies(w, r)
+		Unauthorize(w, r)
 		return true
 	}
 

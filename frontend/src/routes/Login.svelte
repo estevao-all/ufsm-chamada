@@ -1,7 +1,7 @@
 <script lang="ts">
     import TextInput from "../lib/components/TextInput.svelte";
     import Button from "../lib/components/Button.svelte";
-    import { userLogin } from "../lib/api/user";
+    import { login } from "../lib/api/user";
     import { APIError } from "../lib/api/utils";
     import { navigate } from "../router";
 
@@ -28,7 +28,7 @@
         loading = true;
 
         try {
-            await userLogin(sanitizedUsername, sanitizedPassword);
+            await login(sanitizedUsername, sanitizedPassword);
             navigate("/user/dashboard");
         } catch (error) {
             if (error instanceof APIError) {

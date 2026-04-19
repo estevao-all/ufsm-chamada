@@ -3,7 +3,7 @@ const API_BASE_URL = "/api";
 interface RequestOptions {
     method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
     path: string;
-    json: Record<string, any>;
+    json?: Record<string, any>;
 }
 
 interface APIErrorResponse {
@@ -22,7 +22,7 @@ export async function request<T = null>(options: RequestOptions) {
     const response = await fetch(API_BASE_URL + path, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(json),
+        body: json != null ? JSON.stringify(json) : undefined
     });
 
     if (!response.ok) {

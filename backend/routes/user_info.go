@@ -4,13 +4,14 @@ import (
 	"backend/utils"
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 type UserInfoResponse struct {
 	Name string `json:"name"`
 }
 
-var name_regex = regexp.MustCompile(`Menu Geral do Usuário.+?icon-user"></span> (.+?) <span`)
+var name_regex = regexp.MustCompile(`(?s)Menu Geral do Usu.+?icon-user"></span> (.+?) <span`)
 
 func HandleUserInfo(w http.ResponseWriter, r *http.Request) {
 	req, err := http.NewRequest("GET", UFSM_PORTAL_INDEX_URL, nil)
@@ -44,11 +45,17 @@ func HandleUserInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: Confirm if only this route requires special handling for invalid cookies.
+	if strings.Contains(resp_body, "action=\"j_security_check\"") {
+		utils.Unauthorize(w, r) //
+		return
+	}
+
 	name_match := name_regex.FindStringSubmatch(resp_body)
 	if len(name_match) < 2 {
 		utils.WriteStatusAndLogInternally(w,
 			http.StatusInternalServerError,
-			"Error parsing UFSM Portal user info HTML: Name not found in"+resp_body)
+			"Error parsing UFSM Portal user info HTML: Name not found in "+resp_body)
 		return
 	}
 
