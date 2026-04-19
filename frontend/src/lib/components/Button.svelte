@@ -1,16 +1,18 @@
 <script lang="ts">
-    import type { HTMLButtonAttributes } from 'svelte/elements';
+    import type { HTMLButtonAttributes } from "svelte/elements";
 
     interface Props extends HTMLButtonAttributes {
         loading?: boolean;
+        error?: boolean;
     }
 
-    let { disabled = false, loading = false, children, ...restProps }: Props = $props();
+    let { disabled = false, loading = false, error = false, children, ...restProps }: Props = $props();
 </script>
 
 <button
     disabled={disabled || loading}
     data-loading={loading}
+    data-error={error}
     {...restProps}
 >
     <span class="spinner"></span>
@@ -37,7 +39,7 @@
         padding: 0.6em 1.2em;
         font-weight: bold;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: background-color 0.5s ease, border-color 0.5s ease, filter 0.2s ease;
     }
 
     button:hover:not(:disabled) {
@@ -74,5 +76,15 @@
 
     button[data-loading="true"] .content {
         visibility: hidden;
+    }
+
+    button[data-error="true"] {
+        background-color: var(--color-error);
+        border-color: var(--color-error);
+    }
+
+    button[data-error="true"]:hover:not(:disabled) {
+        background-color: var(--color-error-hover);
+        border-color: var(--color-error-hover);
     }
 </style>

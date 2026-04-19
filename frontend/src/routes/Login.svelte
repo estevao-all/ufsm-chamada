@@ -1,30 +1,47 @@
 <script lang="ts">
     import TextInput from "../lib/components/TextInput.svelte";
     import Button from "../lib/components/Button.svelte";
+    import { userLogin } from "../lib/api/user";
+    import { APIError } from "../lib/api/utils";
+    import { navigate } from "../router";
 
     let username = $state("");
     let password = $state("");
     let loading = $state(false);
 
+    let invalidCredentials = $state(false);
+    let invalidCredentialsTimeoutId: number | undefined;
+
     async function handleLogin(event: SubmitEvent) {
         event.preventDefault();
+
+        invalidCredentials = false;
+        clearTimeout(invalidCredentialsTimeoutId);
 
         const sanitizedUsername = username.trim();
         const sanitizedPassword = password.trim();
 
-        if (sanitizedUsername === "" || sanitizedUsername === "") {
+        if (sanitizedUsername === "" || sanitizedPassword === "") {
             return;
         }
 
         loading = true;
 
-        const response = await fetch("/api/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username: sanitizedUsername, password: sanitizedPassword }),
-        }).catch(() => null);
+        try {
+            await userLogin(sanitizedUsername, sanitizedPassword);
+            navigate("/user/dashboard");
+        } catch (error) {
+            if (error instanceof APIError) {
+                if (error.status !== 401) {
+                    return;
+                }
 
-        loading = false;
+                invalidCredentials = true;
+                invalidCredentialsTimeoutId = setTimeout(() => invalidCredentials = false, 1500);
+            }
+        } finally {
+            loading = false;
+        }
     }
 </script>
 
@@ -40,7 +57,7 @@
             type="password" label="Senha"
             bind:value={password}
         />
-        <Button type="submit" {loading}>Login</Button>
+        <Button type="submit" {loading} error={invalidCredentials}>Login</Button>
     </form>
 </div>
 
