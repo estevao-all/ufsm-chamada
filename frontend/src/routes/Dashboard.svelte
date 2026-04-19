@@ -1,0 +1,9 @@
+<script lang="ts">
+</script>
+
+<div class="content">
+    <h1>Dashboard</h1>
+</div>
+
+<style>
+</style>
