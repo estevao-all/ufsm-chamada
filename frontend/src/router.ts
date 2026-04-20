@@ -1,15 +1,17 @@
-import { createRouter } from 'sv-router';
-import { isLoggedIn } from './lib/guards';
+import { createRouter } from "sv-router";
 import Login from "./routes/Login.svelte";
+import RedirectUnknownRoute from "./routes/RedirectUnknownRoute.svelte";
+import { isLoggedIn } from "./lib/guards";
 
 export const { p, navigate, isActive, route } = createRouter({
-    '/login':  Login,
-    '/user': {
-        "/dashboard": () => import('./routes/Dashboard.svelte'),
+    "*": RedirectUnknownRoute,
+    "/login": Login,
+    "/user": {
+        "/dashboard": () => import("./routes/Dashboard.svelte"),
         hooks: {
             beforeLoad() {
                 if (!isLoggedIn()) {
-                    throw navigate('/login');
+                    throw navigate("/login", { replace: true });
                 }
             }
         }

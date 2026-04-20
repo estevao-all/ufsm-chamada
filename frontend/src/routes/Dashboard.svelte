@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getUserInfo } from '../lib/api/user';
+    import { getUserInfo } from "../lib/api/user";
     import { guardAuthenticatedRequest } from "../lib/guards";
 
     function getGreeting() {

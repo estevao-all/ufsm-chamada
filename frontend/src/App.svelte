@@ -1,6 +1,6 @@
 <script>
-    import { Router } from 'sv-router';
-    import './router.ts';
+    import { Router } from "sv-router";
+    import "./router.ts";
 </script>
 
 <Router />
