@@ -3,7 +3,7 @@ function encode(strings: TemplateStringsArray, ...args: Array<string | number>) 
     return strings.reduce((acc, str, i) => {
         acc += str;
 
-        if (args[i] !== undefined && args[i] !== null) {
+        if (args[i] != null) {
             acc += Array.from(
                 String(args[i]),
                 char => SAFE_CHARACTERS.has(char)
@@ -18,5 +18,7 @@ function encode(strings: TemplateStringsArray, ...args: Array<string | number>) 
     }, "");
 }
 
+export const API_BASE_URL = "/api";
 export const USER_LOGIN = "/user/login";
 export const USER_INFO = "/user/info";
+export const USER_TEACHER_DISCIPLINES = "/user/teacher-disciplines";

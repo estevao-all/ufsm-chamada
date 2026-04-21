@@ -1,4 +1,4 @@
-const API_BASE_URL = "/api";
+import { API_BASE_URL } from "./routes";
 
 interface RequestOptions {
     method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";

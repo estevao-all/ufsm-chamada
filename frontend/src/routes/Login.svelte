@@ -45,7 +45,7 @@
     }
 </script>
 
-<div class="content">
+<div class="content-container">
     <form class="login-container" onsubmit={handleLogin}>
         <TextInput
             name="username" autocomplete="username"
@@ -62,7 +62,7 @@
 </div>
 
 <style>
-  .content {
+  .content-container {
     min-height: 100vh;
 
     display: flex;
