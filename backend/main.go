@@ -14,6 +14,7 @@ func main() {
 	mux.HandleFunc("/api/user/login", routes.HandleLogin)
 	mux.HandleFunc("/api/user/info", routes.HandleUserInfo)
 	mux.HandleFunc("/api/user/teacher-disciplines", routes.HandleTeacherDisplicines)
+	mux.HandleFunc("/api/user/discipline-students", routes.HandleDisciplineStudents)
 
 	frontend_static_files_dir := os.Getenv("FRONTEND_STATIC_FILES_DIR")
 	if frontend_static_files_dir == "" {
