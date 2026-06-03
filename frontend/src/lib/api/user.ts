@@ -1,5 +1,6 @@
-import { request } from "./utils";
+import { evaluateDwrReply, request } from "./utils";
 import * as Routes from "./routes";
+import { rawScheduleToParsed } from "./discipline_utils";
 
 export async function login(username: string, password: string) {
     return await request({
@@ -9,7 +10,7 @@ export async function login(username: string, password: string) {
     });
 }
 
-interface UserInfo {
+export interface UserInfo {
     name: string;
 }
 
@@ -20,20 +21,11 @@ export async function getUserInfo() {
     });
 }
 
-interface TeacherDiscipline {
-    id: string;
-    code: string;
-    name: string;
-    time: string;
-}
-
-interface TeacherDisciplines {
-    disciplines: TeacherDiscipline[];
-}
-
-export async function getTeacherDisciplines() {
-    return await request<TeacherDisciplines>({
+export async function getTeacherSchedule() {
+    const rawTeacherScheduleDwrReply = await request<string>({
         method: "GET",
-        path: Routes.USER_TEACHER_DISCIPLINES
+        path: Routes.USER_TEACHER_SCHEDULE
     });
+
+    return rawScheduleToParsed(evaluateDwrReply(rawTeacherScheduleDwrReply));
 }
