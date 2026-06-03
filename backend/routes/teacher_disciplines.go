@@ -2,6 +2,7 @@ package routes
 
 import (
 	"backend/utils"
+	"errors"
 	"io"
 	"net/http"
 	"regexp"
@@ -15,10 +16,6 @@ type TeacherDiscipline struct {
 	Time string `json:"time"`
 }
 
-type TeacherDisciplinesResponse struct {
-	Disciplines []TeacherDiscipline `json:"disciplines"`
-}
-
 var sessionIdRegex = regexp.MustCompile(`(?s)handleCallback\(\\"0\\",\\"0\\",\\"(.+?)\\"\)`)
 
 func ParseSessionId(responseBody []byte) string {
@@ -29,7 +26,7 @@ func ParseSessionId(responseBody []byte) string {
 	return sessionId[1]
 }
 
-func GetScriptSessionId(w http.ResponseWriter, r *http.Request) string {
+func GetScriptSessionId(r *http.Request) (string, error) {
 
 	// "text": "callCount=1\nc0-scriptName=__System\nc0-methodName=generateId\nc0-id=0\nbatchId=0\ninstanceId=1\npage=%2Fdocente%2FmainMenu.html\nscriptSessionId=\n",
 
@@ -44,9 +41,7 @@ func GetScriptSessionId(w http.ResponseWriter, r *http.Request) string {
 
 	req, err := http.NewRequest("POST", "https://portal.ufsm.br/docente/dwr/call/plaincall/__System.generateId.dwr", postBody)
 	if err != nil {
-		utils.WriteStatusAndLogInternally(w,
-			http.StatusInternalServerError, "Error creating Discipline request: "+err.Error())
-		return ""
+		return "", err
 	}
 
 	req.Header.Set("Host", UFSM_PORTAL_HOST)
@@ -56,33 +51,37 @@ func GetScriptSessionId(w http.ResponseWriter, r *http.Request) string {
 
 	resp, err := utils.Client.Do(req)
 	if err != nil {
-		utils.WriteStatusAndLogInternally(w,
-			http.StatusInternalServerError, "Error making Discipline request: "+err.Error())
-		return ""
+		return "", err
 	}
 
 	defer resp.Body.Close()
 
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		utils.WriteStatusAndLogInternally(w,
-			http.StatusInternalServerError, "Error reading Discipline request "+err.Error())
+		return "", err
 	}
 
 	sessionId := ParseSessionId(responseBody)
 
 	if sessionId == "" {
-		utils.WriteStatusAndLogInternally(w,
-			http.StatusInternalServerError,
-			"Error parsing SessionId: SessionId not found in "+string(responseBody))
+		return "", errors.New("Error parsing SessionId: SessionId not found in " + string(responseBody))
+	}
+
+	return sessionId, nil
+}
+
+var DisciplineRegex = regexp.MustCompile(`{.+?({ano:\d{4},horarios:{.+},periodoItem:\d{3}})`)
+
+func ParseTeacherDisciplines(responseBody []byte) string {
+	match := DisciplineRegex.FindStringSubmatch(string(responseBody))
+	if len(match) < 2 {
 		return ""
 	}
 
-	return sessionId
-
+	return match[1]
 }
 
-func GetDisciplines(w http.ResponseWriter, r *http.Request, scriptSessionId string) {
+func GetDisciplines(r *http.Request, scriptSessionId string) (*Schedule, error) {
 
 	bodyText := "callCount=1\n" +
 		"nextReverseAjaxIndex=0\n" +
@@ -100,8 +99,7 @@ func GetDisciplines(w http.ResponseWriter, r *http.Request, scriptSessionId stri
 
 	req, err := http.NewRequest("POST", "https://portal.ufsm.br/docente/dwr/call/plaincall/gradeHorariosAjaxService.horarios.dwr", postBody)
 	if err != nil {
-		utils.WriteStatusAndLogInternally(w,
-			http.StatusInternalServerError, "Error creating Discipline request: "+err.Error())
+		return nil, err
 	}
 
 	req.Header.Set("Host", UFSM_PORTAL_HOST)
@@ -111,39 +109,37 @@ func GetDisciplines(w http.ResponseWriter, r *http.Request, scriptSessionId stri
 
 	resp, err := utils.Client.Do(req)
 	if err != nil {
-		utils.WriteStatusAndLogInternally(w,
-			http.StatusInternalServerError, "Error making Discipline request: "+err.Error())
-		return
+		return nil, err
 	}
 
 	defer resp.Body.Close()
 
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		utils.WriteStatusAndLogInternally(w,
-			http.StatusInternalServerError, "Error reading Discipline request "+err.Error())
+		return nil, err
 	}
 
-	sessionId := ParseSessionId(responseBody)
-
-	if sessionId == "" {
-		utils.WriteStatusAndLogInternally(w,
-			http.StatusInternalServerError,
-			"Error parsing SessionId: SessionId not found in "+string(responseBody))
-		return
+	schedule, err := parseSchedule(string(responseBody))
+	if err != nil {
+		return nil, err
 	}
+
+	return schedule, nil
 
 }
 
 func HandleTeacherDisplicines(w http.ResponseWriter, r *http.Request) {
-	response := TeacherDisciplinesResponse{
-		Disciplines: []TeacherDiscipline{
-			{Id: "1", Code: "ELC1001", Name: "Cálculo I", Time: "8:00am"},
-			{Id: "2", Code: "ELC1002", Name: "Álgebra Linear", Time: "10:30am"},
-			{Id: "3", Code: "ELC1003", Name: "Física I", Time: "2:00pm"},
-			{Id: "4", Code: "ELC1004", Name: "Programação I", Time: "4:30pm"},
-		},
+	scriptSessionId, err := GetScriptSessionId(r)
+	if err != nil {
+		utils.WriteStatusAndLogInternally(w,
+			http.StatusInternalServerError, "Error making ScriptSessionId request "+err.Error())
 	}
 
-	utils.WriteJSON(w, http.StatusOK, response)
+	schedule, err := GetDisciplines(r, scriptSessionId)
+	if err != nil {
+		utils.WriteStatusAndLogInternally(w,
+			http.StatusInternalServerError, "Error making Schedule request "+err.Error())
+	}
+
+	utils.WriteJSON(w, http.StatusOK, *schedule)
 }
