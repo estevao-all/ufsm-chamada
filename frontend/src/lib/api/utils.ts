@@ -1,12 +1,12 @@
 import { API_BASE_URL } from "./routes";
 
-interface RequestOptions {
+export interface RequestOptions {
     method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
     path: string;
     json?: Record<string, any>;
 }
 
-interface APIErrorResponse {
+export interface APIErrorResponse {
     error: string;
 }
 
@@ -31,5 +31,30 @@ export async function request<T = null>(options: RequestOptions) {
     }
 
     const text = await response.text();
-    return (text ? JSON.parse(text) : null) as T;
+
+    if (response.headers.get("Content-Type")?.includes("application/json")) {
+        return (text ? JSON.parse(text) : null) as T;
+    }
+
+    return text as T;
+}
+
+const DWR_SECURITY_PREFIX = "throw 'allowScriptTagRemoting is false.';";
+let latestDwrReply: any = null;
+
+window.dwr = {
+    _: [{
+        engine: {
+            remote: {
+                handleCallback: function (_: string, __: string, reply: any) {
+                    latestDwrReply = reply;
+                }
+            }
+        }
+    }]
+}
+
+export function evaluateDwrReply<T = any>(dwrReply: string) {
+    eval(dwrReply.replace(DWR_SECURITY_PREFIX, "") + "\n//# sourceURL=latestDwrReply.js");
+    return latestDwrReply as T;
 }

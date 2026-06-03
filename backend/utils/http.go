@@ -33,8 +33,8 @@ func WriteStatusAndLogInternally(w http.ResponseWriter, statusCode int, message 
 }
 
 func WriteJSON(w http.ResponseWriter, statusCode int, v any) {
-	w.WriteHeader(statusCode)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
 	json.NewEncoder(w).Encode(v)
 }
 

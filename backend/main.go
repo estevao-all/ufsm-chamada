@@ -13,7 +13,7 @@ func main() {
 
 	mux.HandleFunc("/api/user/login", routes.HandleLogin)
 	mux.HandleFunc("/api/user/info", routes.HandleUserInfo)
-	mux.HandleFunc("/api/user/teacher-disciplines", routes.HandleTeacherDisplicines)
+	mux.HandleFunc("/api/user/teacher-schedule", routes.HandleTeacherSchedule)
 	mux.HandleFunc("/api/user/{classId}/discipline-students", routes.HandleDisciplineStudents)
 
 	frontend_static_files_dir := os.Getenv("FRONTEND_STATIC_FILES_DIR")
@@ -34,6 +34,6 @@ func main() {
 		fs.ServeHTTP(w, r)
 	}))
 
-	log.Println("Listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	log.Println("Listening on :3030")
+	log.Fatal(http.ListenAndServe(":3030", mux))
 }

@@ -11,10 +11,10 @@ type UserInfoResponse struct {
 	Name string `json:"name"`
 }
 
-var name_regex = regexp.MustCompile(`(?s)Menu Geral do Usu.+?icon-user"></span> (.+?) <span`)
+var name_regex = regexp.MustCompile(`(?s)"icon-user"></i> (.+?) <span`)
 
 func HandleUserInfo(w http.ResponseWriter, r *http.Request) {
-	req, err := http.NewRequest("GET", UFSM_PORTAL_INDEX_URL, nil)
+	req, err := http.NewRequest("GET", UFSM_PORTAL_MAIN_MENU_URL, nil)
 	if err != nil {
 		utils.WriteStatusAndLogInternally(w,
 			http.StatusInternalServerError, "Error creating UFSM Portal user info request: "+err.Error())
@@ -47,7 +47,7 @@ func HandleUserInfo(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: Confirm if only this route requires special handling for invalid cookies.
 	if strings.Contains(resp_body, "action=\"j_security_check\"") {
-		utils.Unauthorize(w, r) //
+		utils.Unauthorize(w, r)
 		return
 	}
 
