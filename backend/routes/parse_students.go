@@ -41,14 +41,15 @@ func ParseStudents(htmlContent string) ([]StudentInfo, error) {
 }
 
 func HandleDisciplineStudents(w http.ResponseWriter, r *http.Request) {
-	turmaId := r.URL.Query().Get("turma")
 
-	if turmaId == "" {
-		utils.WriteStatusAndLogInternally(w, http.StatusBadRequest, "turma parameter is required")
+	classId := r.PathValue("classId")
+
+	if classId == "" {
+		utils.WriteStatusAndLogInternally(w, http.StatusBadRequest, "classId parameter is required")
 		return
 	}
 
-	req, err := http.NewRequest("GET", "https://portal.ufsm.br/docente/diario/form.html?turma="+turmaId, nil)
+	req, err := http.NewRequest("GET", "https://portal.ufsm.br/docente/diario/form.html?turma="+classId, nil)
 	if err != nil {
 		utils.WriteStatusAndLogInternally(w,
 			http.StatusInternalServerError, "Error creating Discipline Student request: "+err.Error())
