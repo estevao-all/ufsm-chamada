@@ -1,18 +1,20 @@
 package routes
 
 import (
+	"backend/database"
+	db "backend/database"
+	"backend/models"
 	"backend/utils"
+	"database/sql"
 	"errors"
 	"io"
 	"net/http"
 	"regexp"
 )
 
-type StudentInfo struct {
-	Id        string
-	Name      string
-	Matricula string
-}
+var DB *sql.DB
+
+type StudentInfo = models.StudentInfo
 
 type DisciplineStudentsResponse struct {
 	Students []StudentInfo `json:"students"`
@@ -40,7 +42,7 @@ func ParseStudents(htmlContent string) ([]StudentInfo, error) {
 	return students, nil
 }
 
-func HandleDisciplineStudents(w http.ResponseWriter, r *http.Request) {
+func CreateLesson(w http.ResponseWriter, r *http.Request) {
 
 	classId := r.PathValue("classId")
 
@@ -49,15 +51,16 @@ func HandleDisciplineStudents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req, err := http.NewRequest("GET", "https://portal.ufsm.br/docente/diario/form.html?turma="+classId, nil)
+	req, err := http.NewRequest("GET", `https://portal.ufsm.br/docente/diario/form.html?turma=`+classId, nil)
 	if err != nil {
 		utils.WriteStatusAndLogInternally(w,
-			http.StatusInternalServerError, "Error creating Discipline Student request: "+err.Error())
+			http.StatusInternalServerError, "Error creating lesson request: "+err.Error())
 		return
 	}
 
 	req.Header.Set("Host", UFSM_PORTAL_HOST)
-	req.Header.Set("Cookie", r.Header.Get("Cookie"))
+	req.Header.Set("Origin", UFSM_PORTAL_BASE_URL)
+	req.Header.Set("Referer", UFSM_CREATE_LESSOR_REFERER+classId)
 	req.Header.Set("User-Agent", r.Header.Get("User-Agent"))
 
 	resp, err := utils.Client.Do(req)
@@ -81,5 +84,15 @@ func HandleDisciplineStudents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	db.WriteStudentInfo(students, classId)
+
 	utils.WriteJSON(w, http.StatusOK, DisciplineStudentsResponse{Students: students})
+}
+
+func FetchHandler(w http.ResponseWriter, r *http.Request) {
+	classId := r.PathValue("classId")
+	s, _ := database.FetchStudentinfo(classId)
+
+	utils.WriteJSON(w, http.StatusOK, DisciplineStudentsResponse{Students: s})
+
 }

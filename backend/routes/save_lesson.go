@@ -1,6 +1,7 @@
 package routes
 
 import (
+	db "backend/database"
 	"backend/utils"
 	"fmt"
 	"net/http"
@@ -8,12 +9,6 @@ import (
 	"strings"
 	"time"
 )
-
-func FetchStudentinfo(classId string) *[]StudentInfo {
-
-	var temp []StudentInfo
-	return &temp
-}
 
 func SaveLesson(w http.ResponseWriter, r *http.Request) {
 
@@ -24,7 +19,7 @@ func SaveLesson(w http.ResponseWriter, r *http.Request) {
 			http.StatusInternalServerError, "No id specified.")
 	}
 
-	var s *[]StudentInfo = FetchStudentinfo(classId)
+	students, err := db.FetchStudentinfo(classId)
 
 	req_body := url.Values{}
 
@@ -39,7 +34,7 @@ func SaveLesson(w http.ResponseWriter, r *http.Request) {
 	req_body.Set("periodo", "101")
 	req_body.Set("outrosProfessores", "true")
 
-	for _, student := range *s {
+	for _, student := range students {
 		for i := range 8 {
 			req_body.Set(fmt.Sprintf("presencas[%s][%d].presente", student.Id, i), "true")
 			req_body.Set(fmt.Sprintf("_presencas[%s][%d].presente", student.Id, i), "on")
