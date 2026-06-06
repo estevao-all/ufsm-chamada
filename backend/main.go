@@ -5,10 +5,21 @@ import (
 	"net/http"
 	"os"
 
+	"backend/database"
 	"backend/routes"
 )
 
 func main() {
+
+	err := database.OpenDB("./database.db")
+	if err != nil {
+		log.Fatal("Error Initializing Database")
+	}
+	err = database.RunMigrations()
+	if err != nil {
+		log.Fatal("Error Migrating Database")
+	}
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/api/user/login", routes.HandleLogin)
@@ -16,7 +27,6 @@ func main() {
 	mux.HandleFunc("/api/user/teacher-schedule", routes.HandleTeacherSchedule)
 	mux.HandleFunc("/api/user/{classId}/create-lesson", routes.CreateLesson)
 	mux.HandleFunc("/api/user/{classId}/save-lesson", routes.SaveLesson)
-	mux.HandleFunc("/api/user/{classId}/fetch-test", routes.FetchHandler)
 
 	frontend_static_files_dir := os.Getenv("FRONTEND_STATIC_FILES_DIR")
 	if frontend_static_files_dir == "" {
@@ -37,11 +47,7 @@ func main() {
 	}))
 
 	log.Println("Listening on :3030")
+
 	log.Fatal(http.ListenAndServe(":3030", mux))
 
-	// err := database.OpenDB()
-	// if err != nil {
-	// 	log.Fatal("Error Initializing Database")
-	// }
-	// database.RunMigrations()
 }

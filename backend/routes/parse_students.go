@@ -2,7 +2,6 @@ package routes
 
 import (
 	"backend/database"
-	db "backend/database"
 	"backend/models"
 	"backend/utils"
 	"database/sql"
@@ -84,15 +83,7 @@ func CreateLesson(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db.WriteStudentInfo(students, classId)
+	database.WriteStudentInfo(students, classId)
 
 	utils.WriteJSON(w, http.StatusOK, DisciplineStudentsResponse{Students: students})
-}
-
-func FetchHandler(w http.ResponseWriter, r *http.Request) {
-	classId := r.PathValue("classId")
-	s, _ := database.FetchStudentinfo(classId)
-
-	utils.WriteJSON(w, http.StatusOK, DisciplineStudentsResponse{Students: s})
-
 }

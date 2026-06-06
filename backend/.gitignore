@@ -1,2 +1,5 @@
 frontend
 backend.exe
+
+# Database
+*.db

@@ -1,7 +1,7 @@
 package routes
 
 import (
-	db "backend/database"
+	"backend/database"
 	"backend/utils"
 	"fmt"
 	"net/http"
@@ -17,9 +17,15 @@ func SaveLesson(w http.ResponseWriter, r *http.Request) {
 	if classId == "" {
 		utils.WriteStatusAndLogInternally(w,
 			http.StatusInternalServerError, "No id specified.")
+		return
 	}
 
-	students, err := db.FetchStudentinfo(classId)
+	students, err := database.FetchStudentinfo(classId)
+	if err != nil {
+		utils.WriteStatusAndLogInternally(w,
+			http.StatusInternalServerError, "Failed to fetch student info.")
+		return
+	}
 
 	req_body := url.Values{}
 
@@ -64,4 +70,6 @@ func SaveLesson(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer resp.Body.Close()
+
+	database.CleanUp(classId)
 }
