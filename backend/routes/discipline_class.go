@@ -13,9 +13,10 @@ type Student struct {
 	EnrollmentId string `json:"enrollmentId"`
 }
 
-var discipline_id_regex = regexp.MustCompile(`(?s)name="disciplina" value="(\d+?)"`)
+var discipline_id_regex = regexp.MustCompile(`(?s)name="disciplina".*?value="(\d+?)"`)
 var discipline_name_regex = regexp.MustCompile(`(?s)href="/docente/turma/turma\.html\?id=\d+?&action=view" class="link">\s*(.+?)\s*</a>`)
 var class_name_regex = regexp.MustCompile(`(?s)href="/docente/turma/turma\.html\?id=\d+?&action=view".+?Curso.+?style="">\s*(.+?)\s*</span>`)
+var default_class_start_time_regex = regexp.MustCompile(`(?s)name="itemDiario.dataInicio".*?value="([^"]+?)"`)
 var student_regex = regexp.MustCompile(`(?s)class="link aluno" data-id="([^"]+?)">\s*(.+?)\s*</a>.+?Matrícula.+?style="">\s*(.+?)\s*</span>`)
 
 func GetDisciplineIdFromHTML(class_form_html_content string) (string, error) {
@@ -45,6 +46,15 @@ func GetClassNameFromHTML(class_form_html_content string) (string, error) {
 	return class_name_match[1], nil
 }
 
+func GetDefaultClassStartTimeFromHTML(class_form_html_content string) (string, error) {
+	default_class_start_time_match := default_class_start_time_regex.FindStringSubmatch(class_form_html_content)
+	if len(default_class_start_time_match) < 2 {
+		return "", errors.New("Error parsing UFSM Portal class form HTML: Default class start time not found in " + class_form_html_content)
+	}
+
+	return default_class_start_time_match[1], nil
+}
+
 func GetStudentsFromHTML(class_form_html_content string) ([]Student, error) {
 	student_matches := student_regex.FindAllStringSubmatch(class_form_html_content, -1)
 	if len(student_matches) < 1 {
@@ -64,10 +74,11 @@ func GetStudentsFromHTML(class_form_html_content string) ([]Student, error) {
 }
 
 type DisciplineClassResponse struct {
-	DisciplineId   string    `json:"disciplineId"`
-	DisciplineName string    `json:"disciplineName"`
-	ClassName      string    `json:"className"`
-	Students       []Student `json:"students"`
+	DisciplineId          string    `json:"disciplineId"`
+	DisciplineName        string    `json:"disciplineName"`
+	ClassName             string    `json:"className"`
+	DefaultClassStartTime string    `json:"defaultClassStartTime"`
+	Students              []Student `json:"students"`
 }
 
 func HandleDisciplineClass(w http.ResponseWriter, r *http.Request) {
@@ -131,6 +142,12 @@ func HandleDisciplineClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	default_class_start_time, err := GetDefaultClassStartTimeFromHTML(resp_body)
+	if err != nil {
+		utils.WriteStatusAndLogInternally(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	students, err := GetStudentsFromHTML(resp_body)
 	if err != nil {
 		utils.WriteStatusAndLogInternally(w, http.StatusInternalServerError, err.Error())
@@ -138,9 +155,10 @@ func HandleDisciplineClass(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusOK, DisciplineClassResponse{
-		DisciplineId:   discipline_id,
-		DisciplineName: discipline_name,
-		ClassName:      class_name,
-		Students:       students,
+		DisciplineId:          discipline_id,
+		DisciplineName:        discipline_name,
+		ClassName:             class_name,
+		DefaultClassStartTime: default_class_start_time,
+		Students:              students,
 	})
 }
