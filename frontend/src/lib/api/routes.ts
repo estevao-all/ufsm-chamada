@@ -24,3 +24,4 @@ export const USER_INFO = "/user/info";
 
 export const USER_TEACHER_SCHEDULE = "/user/teacher-schedule";
 export const USER_DISCIPLINE_CLASS = (classId: string) => encode`/user/disciplines/${classId}`;
+export const USER_SAVE_LESSON = (classId: string) => encode`/user/disciplines/${classId}/save-lesson`;

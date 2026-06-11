@@ -39,7 +39,6 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Host", UFSM_PORTAL_HOST)
 	req.Header.Set("Origin", UFSM_PORTAL_BASE_URL)
 	req.Header.Set("Referer", UFSM_PORTAL_INDEX_URL)
 	req.Header.Set("User-Agent", r.Header.Get("User-Agent"))

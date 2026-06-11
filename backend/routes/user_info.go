@@ -26,7 +26,6 @@ func HandleUserInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req.Header.Set("Host", UFSM_PORTAL_HOST)
 	req.Header.Set("Cookie", r.Header.Get("Cookie"))
 	req.Header.Set("User-Agent", r.Header.Get("User-Agent"))
 

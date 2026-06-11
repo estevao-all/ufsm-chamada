@@ -1,6 +1,5 @@
 package routes
 
-var UFSM_PORTAL_HOST = "portal.ufsm.br"
 var UFSM_PORTAL_BASE_URL = "https://portal.ufsm.br"
 var UFSM_PORTAL_TYPE = "docente"
 var UFSM_PORTAL_DWR_PLAINCALL_BASE_URL = UFSM_PORTAL_BASE_URL + "/" + UFSM_PORTAL_TYPE + "/dwr/call/plaincall"

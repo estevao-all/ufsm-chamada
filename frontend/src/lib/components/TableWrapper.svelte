@@ -18,14 +18,17 @@
         border-collapse: collapse;
     }
 
+    .table-wrapper :global(th),
+    .table-wrapper :global(td) {
+        padding: 0.5rem 1rem 0.5rem 0.25rem;
+    }
+
     .table-wrapper :global(th) {
         text-align: left;
-        padding: 0.5rem 1rem 0.5rem 0.25rem;
         border-bottom: 1px solid var(--color-border);
     }
 
     .table-wrapper :global(td) {
-        padding: 0.5rem 1rem 0.5rem 0;
         font-size: 0.9rem;
         color: var(--color-text-main);
     }
@@ -42,21 +45,14 @@
         background-color: color-mix(in srgb, var(--color-primary) 18%, var(--color-background));
     }
 
-    .table-wrapper :global(td button) {
-        all: unset;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        color: var(--color-text);
-        transition: color 0.15s ease-in-out;
+    .table-wrapper :global(.column-fit) {
+        width: 1%;
+        white-space: nowrap;
     }
 
-    .table-wrapper :global(td button:hover) {
-        color: var(--color-primary-hover);
-    }
-
-    .table-wrapper :global(td:first-child) {
+    .table-wrapper :global(.column-fit-center) {
+        width: 1%;
+        white-space: nowrap;
         text-align: center;
     }
-
 </style>

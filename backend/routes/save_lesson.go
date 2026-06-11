@@ -21,6 +21,8 @@ type SaveLessonRequest struct {
 	HourAmount       string            `json:"hourAmount"`
 	Type             string            `json:"type"`
 	NoteText         string            `json:"noteText"`
+	RemoteLesson     bool              `json:"remoteLesson"`
+	Coil             bool              `json:"coil"`
 	StudentPresences []StudentPresence `json:"studentPresences"`
 }
 
@@ -47,6 +49,8 @@ func HandleSaveLesson(w http.ResponseWriter, r *http.Request) {
 	req_body.Set("itemDiario.quantidadeAulas", save_lesson_request.HourAmount)
 	req_body.Set("itemDiario.tipo", save_lesson_request.Type)
 	req_body.Set("itemDiario.texto", "<p>"+save_lesson_request.NoteText+"</p>")
+	req_body.Set("itemDiario.ead", strconv.FormatBool(save_lesson_request.RemoteLesson))
+	req_body.Set("itemDiario.coil", strconv.FormatBool(save_lesson_request.Coil))
 	req_body.Set("disciplina", save_lesson_request.DisciplineId)
 	req_body.Set("turmaOrigem", class_id)
 	req_body.Set("origem", "D")
@@ -56,22 +60,17 @@ func HandleSaveLesson(w http.ResponseWriter, r *http.Request) {
 
 	for _, student_presence := range save_lesson_request.StudentPresences {
 		for i := range 8 { // 8 is the maximum amount of hours a lesson can have.
-			req_body.Set(
-				fmt.Sprintf("presencas[%s][%d].presente", student_presence.StudentId, i),
-				strconv.FormatBool(student_presence.Status),
-			)
-
-			presente := "off"
 			if student_presence.Status {
-				presente = "on"
+				req_body.Set(fmt.Sprintf("presencas[%s][%d].presente", student_presence.StudentId, i), "true")
 			}
-			req_body.Set(fmt.Sprintf("_presencas[%s][%d].presente", student_presence.StudentId, i), presente)
+
+			req_body.Set(fmt.Sprintf("_presencas[%s][%d].presente", student_presence.StudentId, i), "on")
 		}
 	}
 
 	req_body.Set("save", "")
 
-	req, err := http.NewRequest("POST", "127.0.0.1", strings.NewReader(req_body.Encode()))
+	req, err := http.NewRequest("POST", "https://google.com", strings.NewReader(req_body.Encode()))
 	if err != nil {
 		utils.WriteStatusAndLogInternally(w,
 			http.StatusInternalServerError, "Error creating UFSM Portal save lesson request: "+err.Error())
@@ -79,9 +78,9 @@ func HandleSaveLesson(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Host", UFSM_PORTAL_HOST)
 	req.Header.Set("Origin", UFSM_PORTAL_BASE_URL)
 	req.Header.Set("Referer", UFSM_PORTAL_CLASS_FORM_URL+class_id)
+	req.Header.Set("Cookie", r.Header.Get("Cookie"))
 	req.Header.Set("User-Agent", r.Header.Get("User-Agent"))
 
 	resp, err := utils.Client.Do(req)

@@ -37,8 +37,10 @@ export interface Student {
 }
 
 export interface DisciplineClass {
-    name: string;
+    disciplineId: string;
+    disciplineName: string;
     className: string;
+    defaultLessonStartTime: string;
     students: Student[];
 }
 
@@ -46,5 +48,29 @@ export async function getDisciplineClass(classId: string) {
     return request<DisciplineClass>({
         method: "GET",
         path: Routes.USER_DISCIPLINE_CLASS(classId)
+    });
+}
+
+export interface StudentPresence {
+    studentId: string;
+    status: boolean;
+}
+
+export interface SaveLessonRequest {
+    disciplineId: string;
+    startTime: string;
+    hourAmount: string;
+    type: string;
+    noteText: string;
+    remoteLesson: boolean;
+    coil: boolean;
+    studentPresences: StudentPresence[];
+}
+
+export async function saveLesson(classId: string, saveLessonRequest: SaveLessonRequest) {
+    return request({
+        method: "POST",
+        path: Routes.USER_SAVE_LESSON(classId),
+        json: saveLessonRequest
     });
 }

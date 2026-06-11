@@ -34,62 +34,55 @@
     const teacherSchedulePromise = guardAuthenticatedRequest(getTeacherSchedule());
 </script>
 
-<div class="content-container">
-    <div class="dashboard-container">
-        <div class="user-greeting-container">
-            {#await userInfoPromise then userInfo}
-                <h1>{getGreeting()}, {userInfo.name}</h1>
-                <Button variant="ghost" title="Sair" onclick={handleLogout}>
-                    <LogoutIcon />
-                    <span>Sair</span>
-                </Button>
-            {/await}
-        </div>
-        {#await teacherSchedulePromise then teacherSchedule}
-            <h2>Suas disciplinas:</h2>
-            <TableWrapper>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Ações</th>
-                            <th>Nome</th>
-                            <th>Turma</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {#each getDisciplinesFromSchedule(teacherSchedule) as discipline}
-                            <tr>
-                                <td>
-                                    <Button
-                                        variant="icon"
-                                        title="Editar"
-                                        onclick={() => editDisciplineClass(discipline.class.id)}
-                                    >
-                                        <EditSquareIcon />
-                                    </Button>
-                                </td>
-                                <td>{discipline.name}</td>
-                                <td>{discipline.class.name}</td>
-                            </tr>
-                        {/each}
-                    </tbody>
-                </table>
-            </TableWrapper>
+<div class="main-container">
+    <div class="user-greeting-container">
+        {#await userInfoPromise then userInfo}
+            <h1>{getGreeting()}, {userInfo.name}</h1>
+            <Button variant="ghost" title="Sair" onclick={handleLogout}>
+                <LogoutIcon />
+                <span>Sair</span>
+            </Button>
         {/await}
     </div>
+    {#await teacherSchedulePromise then teacherSchedule}
+        <h2>Suas disciplinas:</h2>
+        <TableWrapper>
+            <table>
+                <thead>
+                    <tr>
+                        <th class="column-fit-center">Ações</th>
+                        <th>Nome</th>
+                        <th>Turma</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {#each getDisciplinesFromSchedule(teacherSchedule) as discipline (discipline.class.id)}
+                        <tr>
+                            <td class="column-fit-center">
+                                <Button
+                                    variant="icon"
+                                    title="Editar"
+                                    onclick={() => editDisciplineClass(discipline.class.id)}
+                                >
+                                    <EditSquareIcon />
+                                </Button>
+                            </td>
+                            <td>{discipline.name}</td>
+                            <td>{discipline.class.name}</td>
+                        </tr>
+                    {/each}
+                </tbody>
+            </table>
+        </TableWrapper>
+    {/await}
 </div>
 
 <style>
-    .content-container {
+    .main-container {
         min-height: 100vh;
         padding: 10vh 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .dashboard-container {
         width: min(60rem, 90vw);
+        margin: 0 auto;
         display: flex;
         flex-direction: column;
         gap: 1rem;

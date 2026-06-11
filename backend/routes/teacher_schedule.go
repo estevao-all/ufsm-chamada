@@ -35,7 +35,6 @@ func HandleTeacherSchedule(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req.Header.Set("Content-Type", "text/plain")
-	req.Header.Set("Host", UFSM_PORTAL_HOST)
 	req.Header.Set("Origin", UFSM_PORTAL_BASE_URL)
 	req.Header.Set("Referer", UFSM_PORTAL_CLASSES_URL)
 	req.Header.Set("Cookie", r.Header.Get("Cookie"))
