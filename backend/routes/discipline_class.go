@@ -13,9 +13,19 @@ type Student struct {
 	EnrollmentId string `json:"enrollmentId"`
 }
 
+var discipline_id_regex = regexp.MustCompile(`(?s)name="disciplina" value="(\d+?)"`)
 var discipline_name_regex = regexp.MustCompile(`(?s)href="/docente/turma/turma\.html\?id=\d+?&action=view" class="link">\s*(.+?)\s*</a>`)
 var class_name_regex = regexp.MustCompile(`(?s)href="/docente/turma/turma\.html\?id=\d+?&action=view".+?Curso.+?style="">\s*(.+?)\s*</span>`)
 var student_regex = regexp.MustCompile(`(?s)class="link aluno" data-id="([^"]+?)">\s*(.+?)\s*</a>.+?Matrícula.+?style="">\s*(.+?)\s*</span>`)
+
+func GetDisciplineIdFromHTML(class_form_html_content string) (string, error) {
+	discipline_id_match := discipline_id_regex.FindStringSubmatch(class_form_html_content)
+	if len(discipline_id_match) < 2 {
+		return "", errors.New("Error parsing UFSM Portal class form HTML: Discipline ID not found in " + class_form_html_content)
+	}
+
+	return discipline_id_match[1], nil
+}
 
 func GetDisciplineNameFromHTML(class_form_html_content string) (string, error) {
 	discipline_name_match := discipline_name_regex.FindStringSubmatch(class_form_html_content)
@@ -54,9 +64,10 @@ func GetStudentsFromHTML(class_form_html_content string) ([]Student, error) {
 }
 
 type DisciplineClassResponse struct {
-	Name      string    `json:"name"`
-	ClassName string    `json:"className"`
-	Students  []Student `json:"students"`
+	DisciplineId   string    `json:"disciplineId"`
+	DisciplineName string    `json:"disciplineName"`
+	ClassName      string    `json:"className"`
+	Students       []Student `json:"students"`
 }
 
 func HandleDisciplineClass(w http.ResponseWriter, r *http.Request) {
@@ -66,7 +77,6 @@ func HandleDisciplineClass(w http.ResponseWriter, r *http.Request) {
 	}
 
 	class_id := r.PathValue("classId")
-
 	if class_id == "" {
 		utils.WriteStatusAndLogInternally(w, http.StatusBadRequest, "classId URL path parameter is required")
 		return
@@ -103,6 +113,12 @@ func HandleDisciplineClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	discipline_id, err := GetDisciplineIdFromHTML(resp_body)
+	if err != nil {
+		utils.WriteStatusAndLogInternally(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	discipline_name, err := GetDisciplineNameFromHTML(resp_body)
 	if err != nil {
 		utils.WriteStatusAndLogInternally(w, http.StatusInternalServerError, err.Error())
@@ -122,8 +138,9 @@ func HandleDisciplineClass(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusOK, DisciplineClassResponse{
-		Name:      discipline_name,
-		ClassName: class_name,
-		Students:  students,
+		DisciplineId:   discipline_id,
+		DisciplineName: discipline_name,
+		ClassName:      class_name,
+		Students:       students,
 	})
 }
