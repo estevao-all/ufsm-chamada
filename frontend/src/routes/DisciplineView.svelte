@@ -21,7 +21,7 @@
     let lessionIsCoil = $state(false);
     let lessonNoteText = $state("");
 
-    let allPresencesChecked = $state(false);
+    let allPresencesChecked = $state(true);
     let studentsPresences = $state<Record<string, boolean>>({});
 
     function navigateToDashboard() {
@@ -71,7 +71,7 @@
         lessonStartTime = portalTimeToDateInputTime(disciplineClass.defaultLessonStartTime);
 
         studentsPresences = Object.fromEntries(
-            disciplineClass.students.map(student => [student.id, false])
+            disciplineClass.students.map(student => [student.id, allPresencesChecked])
         );
     });
 </script>

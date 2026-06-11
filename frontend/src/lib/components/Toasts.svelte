@@ -49,7 +49,7 @@
         background-color: var(--color-success);
     }
 
-    .toast-error {
+    .toast-failure {
         background-color: var(--color-error);
     }
 
