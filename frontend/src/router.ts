@@ -8,7 +8,7 @@ export const { p, navigate, isActive, route } = createRouter({
     "/login": Login,
     "/user": {
         "/dashboard": () => import("./routes/Dashboard.svelte"),
-        "/disciplines/:classId": () => import("./routes/DisciplineEditor.svelte"),
+        "/disciplines/:classId": () => import("./routes/DisciplineView.svelte"),
         hooks: {
             beforeLoad() {
                 if (!isLoggedIn()) {
