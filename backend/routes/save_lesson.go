@@ -55,7 +55,7 @@ func HandleSaveLesson(w http.ResponseWriter, r *http.Request) {
 	req_body.Set("outrosProfessores", "true")
 
 	for _, student_presence := range save_lesson_request.StudentPresences {
-		for i := range 8 { // 8 Is the maximum amount of hours a lesson can have.
+		for i := range 8 { // 8 is the maximum amount of hours a lesson can have.
 			req_body.Set(
 				fmt.Sprintf("presencas[%s][%d].presente", student_presence.StudentId, i),
 				strconv.FormatBool(student_presence.Status),
