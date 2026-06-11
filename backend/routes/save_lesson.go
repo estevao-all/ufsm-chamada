@@ -70,7 +70,7 @@ func HandleSaveLesson(w http.ResponseWriter, r *http.Request) {
 
 	req_body.Set("save", "")
 
-	req, err := http.NewRequest("POST", "https://google.com", strings.NewReader(req_body.Encode()))
+	req, err := http.NewRequest("POST", UFSM_PORTAL_CLASS_FORM_URL+class_id, strings.NewReader(req_body.Encode()))
 	if err != nil {
 		utils.WriteStatusAndLogInternally(w,
 			http.StatusInternalServerError, "Error creating UFSM Portal save lesson request: "+err.Error())
