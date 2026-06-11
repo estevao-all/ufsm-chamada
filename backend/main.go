@@ -6,15 +6,16 @@ import (
 	"os"
 
 	"backend/routes"
+	"backend/utils"
 )
 
 func main() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/api/user/login", routes.HandleLogin)
-	mux.HandleFunc("/api/user/info", routes.HandleUserInfo)
-	mux.HandleFunc("/api/user/teacher-schedule", routes.HandleTeacherSchedule)
-	mux.HandleFunc("/api/user/{classId}/discipline-students", routes.HandleDisciplineStudents)
+	mux.HandleFunc("/api/user/info", utils.WithCache(routes.HandleUserInfo))
+	mux.HandleFunc("/api/user/teacher-schedule", utils.WithCache(routes.HandleTeacherSchedule))
+	mux.HandleFunc("/api/user/disciplines/{classId}", utils.WithCache(routes.HandleDisciplineClass))
 
 	frontend_static_files_dir := os.Getenv("FRONTEND_STATIC_FILES_DIR")
 	if frontend_static_files_dir == "" {

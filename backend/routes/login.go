@@ -15,6 +15,11 @@ type LoginRequest struct {
 }
 
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
 	var login_request LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&login_request); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, "Invalid LoginRequest body")
