@@ -48,6 +48,7 @@
         display: inline-flex;
         align-items: center;
         color: var(--color-text);
+        transition: color 0.15s ease-in-out;
     }
 
     .table-wrapper :global(td button:hover) {

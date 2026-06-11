@@ -1,7 +1,8 @@
 <script lang="ts">
     import { getDisciplinesFromSchedule } from "../lib/api/discipline_utils";
     import { getTeacherSchedule, getUserInfo } from "../lib/api/user";
-    import EditSquareIcon from "../lib/components/icons/EditSquare.svelte";
+    import Button from "../lib/components/Button.svelte";
+    import EditSquareIcon from "../lib/components/icons/EditSquareIcon.svelte";
     import LogoutIcon from "../lib/components/icons/LogoutIcon.svelte";
     import TableWrapper from "../lib/components/TableWrapper.svelte";
     import { guardAuthenticatedRequest } from "../lib/guards";
@@ -15,8 +16,8 @@
     }
 
     function handleLogout() {
-        document.cookie.split(';').forEach(cookie => {
-            const name = cookie.split('=')[0].trim();
+        document.cookie.split(";").forEach(cookie => {
+            const name = cookie.split("=")[0].trim();
             document.cookie = `${name}=; path=/; Max-Age=0`;
         });
 
@@ -24,7 +25,9 @@
     }
 
     function editDisciplineClass(classId: number) {
-        console.log(`Edit class with id ${classId}`);
+        navigate("/user/disciplines/:classId", {
+            params: { classId: String(classId) }
+        });
     }
 
     const userInfoPromise = guardAuthenticatedRequest(getUserInfo());
@@ -36,10 +39,10 @@
         <div class="user-greeting-container">
             {#await userInfoPromise then userInfo}
                 <h1>{getGreeting()}, {userInfo.name}</h1>
-                <button title="Sair" class="logout-container" onclick={handleLogout}>
+                <Button variant="ghost" title="Sair" onclick={handleLogout}>
                     <LogoutIcon />
-                    <h4>Sair</h4>
-                </button>
+                    <span>Sair</span>
+                </Button>
             {/await}
         </div>
         {#await teacherSchedulePromise then teacherSchedule}
@@ -57,9 +60,13 @@
                         {#each getDisciplinesFromSchedule(teacherSchedule) as discipline}
                             <tr>
                                 <td>
-                                    <button title="Editar" onclick={() => editDisciplineClass(discipline.class.id)}>
+                                    <Button
+                                        variant="icon"
+                                        title="Editar"
+                                        onclick={() => editDisciplineClass(discipline.class.id)}
+                                    >
                                         <EditSquareIcon />
-                                    </button>
+                                    </Button>
                                 </td>
                                 <td>{discipline.name}</td>
                                 <td>{discipline.class.name}</td>
@@ -94,15 +101,5 @@
         align-items: center;
         justify-content: space-between;
         border-bottom: 2px solid var(--color-primary);
-    }
-
-    .logout-container {
-        display: flex;
-        align-items: center;
-        gap: 0.1rem;
-    }
-
-    .logout-container:hover {
-        color: var(--color-primary-hover);
     }
 </style>

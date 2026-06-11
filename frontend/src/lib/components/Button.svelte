@@ -4,13 +4,25 @@
     interface Props extends HTMLButtonAttributes {
         loading?: boolean;
         error?: boolean;
+        variant?: "primary" | "ghost" | "icon";
+        size?: "sm" | "md" | "lg";
     }
 
-    let { disabled = false, loading = false, error = false, children, ...restProps }: Props = $props();
+    let {
+        variant = "primary",
+        size = "md",
+        disabled = false,
+        loading = false,
+        error = false,
+        children,
+        ...restProps
+    }: Props = $props();
 </script>
 
 <button
     disabled={disabled || loading}
+    data-variant={variant}
+    data-size={size}
     data-loading={loading}
     data-error={error}
     {...restProps}
@@ -22,29 +34,68 @@
 </button>
 
 <style>
+    .content {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
     button {
-        visibility: visible;
         position: relative;
-
-        width: 100%;
-
-        background-color: var(--color-primary);
-        color: var(--color-primary-contrast);
-        border: 1px solid var(--color-border);
-        border-radius: 6px;
-
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 0.6em 1.2em;
         font-weight: bold;
         cursor: pointer;
-        transition: background-color 0.5s ease, border-color 0.5s ease, filter 0.2s ease;
+        border-radius: 6px;
+        border: 1px solid transparent;
+        transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, filter 0.2s ease;
     }
 
-    button:hover:not(:disabled) {
+    button[data-size="sm"] { padding: 0.3em 0.75em; font-size: 0.85rem; }
+    button[data-size="md"] { padding: 0.6em 1.2em; font-size: 1rem; }
+    button[data-size="lg"] { padding: 0.75em 1.5em; font-size: 1.15rem; }
+
+    button[data-variant="primary"] {
+        width: 100%;
+        background-color: var(--color-primary);
+        border-color: var(--color-border);
+        color: var(--color-primary-contrast);
+    }
+    button[data-variant="primary"]:hover:not(:disabled) {
         background-color: var(--color-primary-hover);
-        border-color: color-mix(in srgb, var(--color-border), transparent 50%);
+    }
+
+    /* Ghost */
+    button[data-variant="ghost"] {
+        background-color: transparent;
+        border-color: transparent;
+        color: inherit;
+    }
+    button[data-variant="ghost"]:hover:not(:disabled) {
+        color: var(--color-primary-hover);
+    }
+
+    /* Icon */
+    button[data-variant="icon"] {
+        background-color: transparent;
+        border-color: transparent;
+        color: inherit;
+        padding: 0.25em;
+        border-radius: 4px;
+    }
+    button[data-variant="icon"]:hover:not(:disabled) {
+        color: var(--color-primary-hover);
+    }
+
+    /* Error */
+    button[data-error="true"] {
+        background-color: var(--color-error);
+        border-color: var(--color-error);
+        color: var(--color-primary-contrast);
+    }
+    button[data-error="true"]:hover:not(:disabled) {
+        background-color: var(--color-error-hover);
     }
 
     button:disabled {
@@ -54,12 +105,10 @@
     .spinner {
         visibility: hidden;
         position: absolute;
-
         width: 1em;
         height: 1em;
-
-        border: 2px solid color-mix(in srgb, var(--color-primary-contrast), transparent 50%);
-        border-top-color: var(--color-primary-contrast);
+        border: 2px solid color-mix(in srgb, currentColor, transparent 60%);
+        border-top-color: currentColor;
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
     }
@@ -73,18 +122,7 @@
     button[data-loading="true"] .spinner {
         visibility: visible;
     }
-
     button[data-loading="true"] .content {
         visibility: hidden;
-    }
-
-    button[data-error="true"] {
-        background-color: var(--color-error);
-        border-color: var(--color-error);
-    }
-
-    button[data-error="true"]:hover:not(:disabled) {
-        background-color: var(--color-error-hover);
-        border-color: var(--color-error-hover);
-    }
+        }
 </style>
