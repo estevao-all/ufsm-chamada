@@ -5,6 +5,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+
+	"golang.org/x/net/html/charset"
 )
 
 var default_cookies_max_age = 60 * 60 * 24 * 7
@@ -20,31 +22,37 @@ type ErrorResponse struct {
 }
 
 func ReadResponseBodyAsString(resp *http.Response) (string, error) {
-	body, err := io.ReadAll(resp.Body)
+	reader, err := charset.NewReader(resp.Body, resp.Header.Get("Content-Type"))
 	if err != nil {
 		return "", err
 	}
+
+	body, err := io.ReadAll(reader)
+	if err != nil {
+		return "", err
+	}
+
 	return string(body), nil
 }
 
-func WriteStatusAndLogInternally(w http.ResponseWriter, statusCode int, message string) {
+func WriteStatusAndLogInternally(w http.ResponseWriter, status_code int, message string) {
 	log.Println(message)
-	w.WriteHeader(statusCode)
+	w.WriteHeader(status_code)
 }
 
-func WriteJSON(w http.ResponseWriter, statusCode int, v any) {
+func WriteJSON(w http.ResponseWriter, status_code int, v any) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
+	w.WriteHeader(status_code)
 	json.NewEncoder(w).Encode(v)
 }
 
-func WriteError(w http.ResponseWriter, statusCode int, message string) {
-	WriteJSON(w, statusCode, ErrorResponse{Error: message})
+func WriteError(w http.ResponseWriter, status_code int, message string) {
+	WriteJSON(w, status_code, ErrorResponse{Error: message})
 }
 
-func WriteErrorAndLogInternally(w http.ResponseWriter, statusCode int, message string) {
+func WriteErrorAndLogInternally(w http.ResponseWriter, status_code int, message string) {
 	log.Println(message)
-	WriteError(w, statusCode, message)
+	WriteError(w, status_code, message)
 }
 
 func RedirectCookiesAndSetMaxAge(w http.ResponseWriter, resp *http.Response) {

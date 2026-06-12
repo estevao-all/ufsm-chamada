@@ -11,9 +11,14 @@ type UserInfoResponse struct {
 	Name string `json:"name"`
 }
 
-var name_regex = regexp.MustCompile(`(?s)"icon-user"></i> (.+?) <span`)
+var name_regex = regexp.MustCompile(`(?s)class="icon-user"></i>\s*(.+?)\s*<span`)
 
 func HandleUserInfo(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
 	req, err := http.NewRequest("GET", UFSM_PORTAL_MAIN_MENU_URL, nil)
 	if err != nil {
 		utils.WriteStatusAndLogInternally(w,
@@ -21,7 +26,6 @@ func HandleUserInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req.Header.Set("Host", UFSM_PORTAL_HOST)
 	req.Header.Set("Cookie", r.Header.Get("Cookie"))
 	req.Header.Set("User-Agent", r.Header.Get("User-Agent"))
 
@@ -33,7 +37,6 @@ func HandleUserInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer resp.Body.Close()
-
 	if utils.HandleUnauthorized(w, r, resp) {
 		return
 	}
@@ -45,7 +48,8 @@ func HandleUserInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Confirm if only this route requires special handling for invalid cookies.
+	// Note: index.html routes require this special handling for invalid cookies. Right now we are using mainMenu.html,
+	// which likely makes this not needed. However, we are keeping this here just in case.
 	if strings.Contains(resp_body, "action=\"j_security_check\"") {
 		utils.Unauthorize(w, r)
 		return

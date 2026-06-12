@@ -45,8 +45,8 @@
     }
 </script>
 
-<div class="content-container">
-    <form class="login-container" onsubmit={handleLogin}>
+<div class="main-container">
+    <form class="login-input-container" onsubmit={handleLogin}>
         <TextInput
             name="username" autocomplete="username"
             label="Usuário"
@@ -62,20 +62,18 @@
 </div>
 
 <style>
-  .content-container {
-    min-height: 100vh;
+    .main-container {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
 
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .login-container {
-    width: min(25rem, 90vw);
-
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
+    .login-input-container {
+        width: min(25rem, 90vw);
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
 </style>

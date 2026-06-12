@@ -21,4 +21,7 @@ function encode(strings: TemplateStringsArray, ...args: Array<string | number>) 
 export const API_BASE_URL = "/api";
 export const USER_LOGIN = "/user/login";
 export const USER_INFO = "/user/info";
+
 export const USER_TEACHER_SCHEDULE = "/user/teacher-schedule";
+export const USER_DISCIPLINE_CLASS = (classId: string) => encode`/user/disciplines/${classId}`;
+export const USER_SAVE_LESSON = (classId: string) => encode`/user/disciplines/${classId}/save-lesson`;
