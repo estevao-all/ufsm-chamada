@@ -1,7 +1,7 @@
 <script lang="ts">
     import QrScannerLib from "qr-scanner";
     import { failure, success } from "../lib/api/svelte/toasts.svelte";
-    import { getDisciplineClass, saveLesson } from "../lib/api/user";
+    import { getDisciplineClass, saveLesson, type Student } from "../lib/api/user";
     import Button from "../lib/components/Button.svelte";
     import DateInput from "../lib/components/DateInput.svelte";
     import BackIcon from "../lib/components/icons/BackIcon.svelte";
@@ -24,7 +24,7 @@
 
     let allPresencesChecked = $state(false);
     let studentsPresences = $state<Record<string, boolean>>({});
-    let enrollmentIdToStudentIdMap = $state<Record<string, string>>({});
+    let enrollmentIdToStudentMap = $state<Record<string, Student>>({});
     let qrCodesScanned = $state<Set<string>>(new Set());
 
     let savingLesson = $state(false);
@@ -126,15 +126,15 @@
         }
 
         const enrollmentId = parsedQrCodeResult[1];
-        const studentId = enrollmentIdToStudentIdMap[enrollmentId];
+        const student = enrollmentIdToStudentMap[enrollmentId];
 
-        if (studentId == null) {
+        if (student == null) {
             failure("O QR Code lido não pertence a nenhum aluno da turma");
             return;
         }
 
-        success("Sua presença foi registrada!");
-        studentsPresences[studentId] = true;
+        success(`${student.name}, sua presença foi registrada!`);
+        studentsPresences[student.id] = true;
     }
 
     function toggleQrCodeScanner() {
@@ -146,8 +146,8 @@
         disciplineId = disciplineClass.disciplineId;
         lessonStartTime = portalTimeToDateInputTime(disciplineClass.defaultLessonStartTime);
 
-        enrollmentIdToStudentIdMap = Object.fromEntries(
-            disciplineClass.students.map(student => [student.enrollmentId, student.id])
+        enrollmentIdToStudentMap = Object.fromEntries(
+            disciplineClass.students.map(student => [student.enrollmentId, student])
         );
         studentsPresences = Object.fromEntries(
             disciplineClass.students.map(student => [student.id, allPresencesChecked])
