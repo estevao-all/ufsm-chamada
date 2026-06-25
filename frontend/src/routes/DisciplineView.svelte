@@ -1,4 +1,5 @@
 <script lang="ts">
+    import QrScannerLib from "qr-scanner";
     import { failure, success } from "../lib/api/svelte/toasts.svelte";
     import { getDisciplineClass, saveLesson } from "../lib/api/user";
     import Button from "../lib/components/Button.svelte";
@@ -21,8 +22,12 @@
     let lessionIsCoil = $state(false);
     let lessonNoteText = $state("");
 
-    let allPresencesChecked = $state(true);
+    let allPresencesChecked = $state(false);
     let studentsPresences = $state<Record<string, boolean>>({});
+    let enrollmentIdToStudentIdMap = $state<Record<string, string>>({});
+    let qrCodesScanned = $state<Set<string>>(new Set());
+
+    let savingLesson = $state(false);
 
     function navigateToDashboard() {
         navigate("/user/dashboard");
@@ -43,6 +48,8 @@
             return;
         }
 
+        savingLesson = true;
+
         try {
             await saveLesson(params.classId, {
                 disciplineId: disciplineId,
@@ -62,7 +69,76 @@
         } catch (err) {
             failure("Houve um erro ao adicionar a aula");
             throw err;
+        } finally {
+            savingLesson = false;
         }
+    }
+
+    let qrCodeScannerOpen = $state(false);
+    let qrCodeScannerVideoElement = $state<HTMLVideoElement | null>(null);
+
+    function fullVideoScanRegion(video: HTMLVideoElement) {
+        return {
+            x: 0,
+            y: 0,
+            width: video.videoWidth,
+            height: video.videoHeight,
+        };
+    }
+
+    $effect(() => {
+        if (qrCodeScannerVideoElement == null) {
+            return;
+        }
+
+        const scanner = new QrScannerLib(qrCodeScannerVideoElement, handleQrCodeResult, {
+            highlightScanRegion: true,
+            highlightCodeOutline: true,
+            maxScansPerSecond: 60,
+            calculateScanRegion: fullVideoScanRegion,
+        });
+
+        scanner.start().catch(() => {
+            qrCodeScannerOpen = false;
+            failure("Não foi possível acessar a câmera");
+        });
+
+        return () => {
+            scanner.stop();
+            scanner.destroy();
+        };
+    });
+
+    function handleQrCodeResult(result: QrScannerLib.ScanResult) {
+        if (qrCodesScanned.has(result.data)) {
+            return;
+        }
+
+        qrCodesScanned.add(result.data);
+        setTimeout(() => {
+            qrCodesScanned.delete(result.data);
+        }, 5000);
+
+        const parsedQrCodeResult = result.data.match(/\d\.(\d+)\.\d.\w/);
+        if (parsedQrCodeResult == null) {
+            failure("QR Code inválido");
+            return;
+        }
+
+        const enrollmentId = parsedQrCodeResult[1];
+        const studentId = enrollmentIdToStudentIdMap[enrollmentId];
+
+        if (studentId == null) {
+            failure("O QR Code lido não pertence a nenhum aluno da turma");
+            return;
+        }
+
+        success("Sua presença foi registrada!");
+        studentsPresences[studentId] = true;
+    }
+
+    function toggleQrCodeScanner() {
+        qrCodeScannerOpen = !qrCodeScannerOpen;
     }
 
     const disciplineClassPromise = guardAuthenticatedRequest(getDisciplineClass(params.classId));
@@ -70,6 +146,9 @@
         disciplineId = disciplineClass.disciplineId;
         lessonStartTime = portalTimeToDateInputTime(disciplineClass.defaultLessonStartTime);
 
+        enrollmentIdToStudentIdMap = Object.fromEntries(
+            disciplineClass.students.map(student => [student.enrollmentId, student.id])
+        );
         studentsPresences = Object.fromEntries(
             disciplineClass.students.map(student => [student.id, allPresencesChecked])
         );
@@ -92,6 +171,16 @@
             <span>Voltar</span>
         </Button>
     </div>
+
+    <div class="toggle-qr-code-scanner-button">
+        <Button variant="primary" title={qrCodeScannerOpen ? "Desligar Leitura QR Code" : "Iniciar Leitura QR Code"} onclick={toggleQrCodeScanner}>
+            <span>{qrCodeScannerOpen ? "Desligar Leitura QR Code" : "Iniciar Leitura QR Code"}</span>
+        </Button>
+    </div>
+
+    {#if qrCodeScannerOpen}
+        <video bind:this={qrCodeScannerVideoElement} class="qr-code-scanner-video"></video>
+    {/if}
 
     <h2>Dados da aula</h2>
     <div class="lesson-data-container">
@@ -175,7 +264,7 @@
         </TableWrapper>
 
         <div class="actions">
-            <Button variant="primary" onclick={handleSaveLesson}>Salvar</Button>
+            <Button variant="primary" loading={savingLesson} onclick={handleSaveLesson}>Salvar</Button>
         </div>
     {/await}
 </div>
@@ -203,6 +292,21 @@
         display: flex;
         flex-direction: column;
         gap: 0.25rem;
+    }
+
+    .toggle-qr-code-scanner-button {
+        max-width: 16rem;
+    }
+
+    .qr-code-scanner-video {
+        display: block;
+        width: 100%;
+        object-fit: cover;
+        border-radius: 0.5rem;
+    }
+
+    :global(.scan-region-highlight-svg) {
+        display: none !important;
     }
 
     .lesson-data-container {

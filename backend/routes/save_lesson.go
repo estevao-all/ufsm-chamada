@@ -90,7 +90,7 @@ func HandleSaveLesson(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if resp.StatusCode != http.StatusFound {
+	if resp.StatusCode != http.StatusFound && resp.StatusCode != http.StatusOK {
 		utils.WriteStatusAndLogInternally(w,
 			http.StatusInternalServerError, "Unexpected status code from UFSM Portal save lesson request: "+resp.Status)
 		return
