@@ -75,6 +75,7 @@
     }
 
     let qrCodeScannerOpen = $state(false);
+    let qrCodeScannerCameraInverted = $state(false);
     let qrCodeScannerVideoElement = $state<HTMLVideoElement | null>(null);
 
     function fullVideoScanRegion(video: HTMLVideoElement) {
@@ -141,6 +142,15 @@
         qrCodeScannerOpen = !qrCodeScannerOpen;
     }
 
+    function invertQrCodeScannerCamera() {
+        qrCodeScannerCameraInverted = !qrCodeScannerCameraInverted;
+        if (qrCodeScannerVideoElement == null) {
+            return;
+        }
+
+        qrCodeScannerVideoElement.style.transform = qrCodeScannerCameraInverted ? "scaleX(-1)" : "scaleX(1)";
+    }
+
     const disciplineClassPromise = guardAuthenticatedRequest(getDisciplineClass(params.classId));
     disciplineClassPromise.then(disciplineClass => {
         disciplineId = disciplineClass.disciplineId;
@@ -172,10 +182,19 @@
         </Button>
     </div>
 
-    <div class="toggle-qr-code-scanner-button">
-        <Button variant="primary" title={qrCodeScannerOpen ? "Desligar Leitura QR Code" : "Iniciar Leitura QR Code"} onclick={toggleQrCodeScanner}>
-            <span>{qrCodeScannerOpen ? "Desligar Leitura QR Code" : "Iniciar Leitura QR Code"}</span>
-        </Button>
+    <div class="qr-code-actions">
+        <div class="qr-code-action">
+            <Button variant="primary" title={qrCodeScannerOpen ? "Desligar Leitura QR Code" : "Iniciar Leitura QR Code"} onclick={toggleQrCodeScanner}>
+                <span>{qrCodeScannerOpen ? "Desligar Leitura QR Code" : "Iniciar Leitura QR Code"}</span>
+            </Button>
+        </div>
+        {#if qrCodeScannerOpen}
+            <div class="qr-code-action">
+                <Button variant="primary" title="Inverter Câmera" onclick={invertQrCodeScannerCamera}>
+                    <span>Inverter Câmera</span>
+                </Button>
+            </div>
+        {/if}
     </div>
 
     {#if qrCodeScannerOpen}
@@ -294,7 +313,12 @@
         gap: 0.25rem;
     }
 
-    .toggle-qr-code-scanner-button {
+    .qr-code-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .qr-code-action {
         max-width: 16rem;
     }
 
